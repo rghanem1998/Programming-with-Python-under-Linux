@@ -1,0 +1,273 @@
+import glob
+import itertools
+import matplotlib.pyplot as plt
+import ntpath
+import numpy as np
+import operator
+import os
+import shutil
+import string
+import time
+import time
+from collections import defaultdict
+
+global str
+
+ext = largest_name = smallest_name = ""
+no_of_files = largest_size = smallest_size = sizee = 0
+final_format = [(ext, no_of_files, sizee, largest_name, largest_size, smallest_name, smallest_size)] * 100
+
+EXTENSIONS = []
+myfile = open("PartitioningStats.txt", "w+")
+mylist = []
+
+# we need to use a key,value structure to store the count and size of each file type, we're using python dictionaries
+# this dictionary has key = extension and value = file name
+fileType = {
+    'No Type': 0
+}
+# this dictionary has the key = extension and value = total size of all files of this extension
+# for example an entry can be as follows: .pdf : 3000 , this means that in the passed directory, the sum of sizes of pdf files is 3000 bytes
+fileSize = {
+    'No Type': 0
+}
+# key = name, value = size
+name_size = {
+
+}
+# key is name and value is extension
+name_ext = {
+
+}
+
+ext_info = {
+
+}
+ext_names = {}
+v = defaultdict(list)
+
+
+# a function to traverse the passed path
+def traverse_dir(path):
+    def walkk(path):
+        os.chdir(path)
+        for root, dirs, files in os.walk(".", topdown=False):
+            for name in files:
+                # print(os.path.join(root, name))
+                # extracts the file name+extension in the form of (filename.ext) from its path
+                nameInDir = ntpath.basename(os.path.join(root, name))
+                path_2, ext = os.path.splitext(os.path.join(root, name))
+                EXTENSIONS.append(ext)
+
+                # name22 is without the extension
+                pathOfTheFilee, name22 = os.path.split(os.path.abspath(path_2))
+
+                sizeOfFile = os.stat(os.path.join(root, name)).st_size
+                name_size[name22] = sizeOfFile
+
+                # print("_______size is __________",sizeOfFile)
+                # print("\n")
+                name_ext[name22] = ext
+
+                if (len(ext) == 0):
+                    fileType['No Type'] = fileType['No Type'] + 1
+                    fileSize['No Type'] = fileSize['No Type'] + sizeOfFile
+                    ext_info['No Type'] = {'No Type'}
+
+                if (len(ext) != 0) and (ext not in fileType.keys()):
+                    fileType[ext] = 1
+                    fileSize[ext] = sizeOfFile
+                    ext_info[ext] = {ext}
+                elif ext in fileType.keys():
+                    fileType[ext] = fileType[ext] + 1
+                    fileSize[ext] = fileSize[ext] + sizeOfFile
+                    ext_info[ext] = {ext}
+
+                # for x in range(0, len(final_EXTENSIONS)):
+
+        # print(final_EXTENSIONS)
+
+        print(
+            "\n\nThe following are statistics about the files inside the directory, below are the numbers of files of each type:")
+
+        print("\nNow, the sum of size of each type:")
+
+        # ascending sorting
+        sorted_name_size = sorted(name_size.items(), key=lambda name_size: (name_size[1], name_size[0]))
+        # smallest file
+        print("\n")
+        print("The smallest file is:")
+        print(sorted_name_size[0])
+        # largest file
+        print("\n")
+        print("The largest file is:")
+        print(sorted_name_size[len(sorted_name_size) - 1])
+        print("\n")
+
+    if os.path.exists(path) and os.path.isdir(path):
+        print("\nIt is a folder\n")
+        walkk(path)
+
+    elif os.path.exists(path) and os.path.isfile(path):
+        print("\nIt is a file")
+        # extracts the file name from its path
+        name = ntpath.basename(path)
+        # as fot the type
+        path2, extension = os.path.splitext(path)
+        if (not extension):
+            print("this file is of no type")
+        # path2 is the passed path to the file including its name
+        else:
+            print("type is", extension)
+        # for the size of the file in bytes:
+        print("name is", name)
+        pathOfTheFile, name2 = os.path.split(os.path.abspath(path2))
+        os.chdir(pathOfTheFile)
+        size = os.stat(name).st_size
+        print("size in bytes is", size)
+
+
+x = y = ""
+full_list_of_all_files = [(x, y)]
+count = 0
+
+
+def second_part(path):
+    fileTypeInfo = [[] for _ in range(5000)]
+
+    folder = '.'
+
+    filepaths = [os.path.join(folder, f) for f in os.listdir(folder)]
+    filepaths = [f.path for f in os.scandir('.') if f.is_file()]
+    dirpaths = [f.path for f in os.scandir('.') if f.is_dir()]
+    for (dirpath, dirnames, filenames) in os.walk('.'):
+        fileList = set()
+        for f in filenames:
+            # print('FILE :', os.path.join(dirpath, f))
+            path_2, ext = os.path.splitext(os.path.join(dirpath, f))
+
+            EXTENSIONS.append(ext)
+
+            final_EXTENSIONS = list(dict.fromkeys(EXTENSIONS))
+            name = ntpath.basename(os.path.join(dirpath, f))
+
+            SIZE = os.stat(os.path.join(dirpath, name)).st_size
+            mytuple = (name, SIZE)
+            full_list_of_all_files.append(mytuple)
+            # ext_info[ext].append(name)
+
+    for file in full_list_of_all_files:
+        for e in final_EXTENSIONS:
+            if str(file[0]).__contains__(str(e)):
+                fileTypeInfo[final_EXTENSIONS.index(e)].append(file)
+
+    print("\nprinting lists of files corresponding to extnesions\n")
+    
+
+    for r in range(0, len(final_EXTENSIONS)):
+        # ascending
+        fileTypeInfo[r].sort(key=lambda tup: tup[1])
+        v1 = fileTypeInfo[r][-1][0]
+        v2 = fileTypeInfo[r][-1][1]
+        v3 = fileTypeInfo[r][0][0]
+        v4 = fileTypeInfo[r][0][1]
+
+        temp = final_EXTENSIONS[r]
+        new_list = list(final_format[r])
+        new_list[0] = temp
+        new_list[1] = fileType[final_EXTENSIONS[r]]
+        new_list[2] = fileSize[final_EXTENSIONS[r]]
+        new_list[3] = v1
+        new_list[4] = v2
+        new_list[5] = v3
+        new_list[6] = v4
+        print(new_list)
+
+        myfile.write(new_list[0] + "," + str(new_list[1]) + "," + str(new_list[2]) + "," + (new_list[3]) + "," + str(
+            new_list[4]) + "," + new_list[5] + "," + str(new_list[6]) + ";\n")
+        for d in dirnames:
+            print('DIRECTORY :', os.path.join(dirpath, d))
+            # print(glob.glob('*.pdf'))
+    myfile.close()
+
+    # this counter starts counting in seconds once we click run
+
+
+# start_time = time.time()
+# user prompt to enter directory name
+
+print("Enter the name of the directory: ")
+# read directory name and store it in dir variable
+inp = input()
+
+
+def op1():
+    print("hereeee")
+    traverse_dir(inp)
+    second_part(inp)
+
+
+lst_val = []
+lst_Type = []
+for x in fileSize:
+    lst_val.append(fileSize[x])
+for x in fileSize:
+    lst_Type.append(x)
+
+
+def op3():
+    plt.pie(lst_val, autopct='%1.1f%%', startangle=0)
+    plt.legend(lst_Type, loc=3)
+    plt.axis('equal')  # Equal aspect ratio ensures that pie is drawn as a circle.
+    plt.title("Percentage of the size of each Type")
+    plt.tight_layout()
+    plt.show()
+
+
+# op1()
+
+
+# print(name_ext)
+# print(str(dict(v)))
+
+""""""
+
+"""
+total, used, free = shutil.disk_usage("/")
+
+print("Total: %d GiB" % (total // (2**30)))
+print("Used: %d GiB" % (used // (2**30)))
+print("Free: %d GiB" % (free // (2**30)))
+"""
+""""""
+
+
+# op2.test()
+
+# op3()
+def op2():
+    print("**********************WELCOME to Validation of Stats file ********************")
+    print(
+        "Summary : This part simply takes two files and compares between two results if there is no mismatch so Congratulations!,your code and your friend's code is 100% Correct :)")
+    with open('PartitioningStats.txt') as f1, open('PartitioningStats1.txt') as f2:
+        for lineno, (line1, line2) in enumerate(zip(f1, f2), 1):
+            if line1 != line2:
+                print ("mismatch in line no:", lineno)
+            else:
+                print("COOL!,this line is is OK :)")
+
+
+while True:
+    val = input(
+        "Please choose one of the services that this program provides: \n 1-Type (h) to view File Statistics \n 2-Type (c) to view validation of Stats file \n 3-type (g)to view Graphical representation of Stats file\n")
+    print (val)
+    if (val == 'h'):
+        op1()
+        # myfile.close()
+    if (val == 'c'):
+        op2()
+    if (val == 'g'):
+        op3()
+
+        # this is where we print the runtime which is the difference between the start time and the time the program stops running
+# print("--- %s seconds ---" % (time.time() - start_time))
